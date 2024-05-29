@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "This is a simple REST server providing CRUD operations on a User object",
-        "title": "Faceit user service",
+        "title": "faceit-user-service",
         "contact": {},
         "version": "1.0"
     },

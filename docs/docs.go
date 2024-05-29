@@ -306,7 +306,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Faceit user service",
+	Title:            "faceit-user-service",
 	Description:      "This is a simple REST server providing CRUD operations on a User object",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

@@ -14,7 +14,7 @@ const (
 	gooseDir = "./db/goose"
 )
 
-// @title Faceit user service
+// @title faceit-user-service
 // @version 1.0
 // @description This is a simple REST server providing CRUD operations on a User object
 
