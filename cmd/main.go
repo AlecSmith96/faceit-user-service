@@ -34,7 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := drivers.NewRouter(postgresAdapter)
+	router := drivers.NewRouter(postgresAdapter, postgresAdapter, postgresAdapter)
 
 	err = router.Run()
 	if err != nil {

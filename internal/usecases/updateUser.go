@@ -2,19 +2,20 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"github.com/AlecSmith96/faceit-user-service/internal/entities"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
-//go:generate mockgen --build_flags=--mod=mod -destination=../../mocks/userCreator.go  . "UserCreator"
-type UserCreator interface {
-	CreateUser(ctx context.Context, firstName, lastName, nickname, password, email, country string) (*entities.User, error)
+type UserUpdater interface {
+	UpdateUser(ctx context.Context, userID uuid.UUID, firstName, lastName, nickname, password, email, country string) (*entities.User, error)
 }
 
-type CreateUserRequestBody struct {
+type UpdateUserRequestBody struct {
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name" binding:"required"`
 	Nickname  string `json:"nickname" binding:"required"`
@@ -23,7 +24,7 @@ type CreateUserRequestBody struct {
 	Country   string `json:"country" binding:"required"`
 }
 
-type CreateUserResponseBody struct {
+type UpdateUserResponseBody struct {
 	ID        string    `json:"id"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
@@ -35,18 +36,28 @@ type CreateUserResponseBody struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewCreateUser(userCreator UserCreator) gin.HandlerFunc {
+func NewUpdateUser(userUpdater UserUpdater) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userID := c.Param("userId")
+
+		userIDUUID, err := uuid.Parse(userID)
+		if err != nil {
+			slog.Error("invalid userID", "err", err)
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
 		var request CreateUserRequestBody
-		err := c.ShouldBindJSON(&request)
+		err = c.ShouldBindJSON(&request)
 		if err != nil {
 			slog.Warn("unable to bind request", "err", err)
 			c.Status(http.StatusBadRequest)
 			return
 		}
 
-		user, err := userCreator.CreateUser(
+		user, err := userUpdater.UpdateUser(
 			c.Request.Context(),
+			userIDUUID,
 			request.FirstName,
 			request.LastName,
 			request.Nickname,
@@ -55,12 +66,18 @@ func NewCreateUser(userCreator UserCreator) gin.HandlerFunc {
 			request.Country,
 		)
 		if err != nil {
-			slog.Error("creating user", "err", err)
+			if errors.Is(err, entities.ErrUserNotFound) {
+				slog.Warn("user not found", "err", err)
+				c.Status(http.StatusBadRequest)
+				return
+			}
+
+			slog.Error("updating user", "err", err)
 			c.Status(http.StatusInternalServerError)
 			return
 		}
 
-		c.JSON(http.StatusOK, CreateUserResponseBody{
+		c.JSON(http.StatusOK, UpdateUserResponseBody{
 			ID:        user.ID.String(),
 			FirstName: user.FirstName,
 			LastName:  user.LastName,
