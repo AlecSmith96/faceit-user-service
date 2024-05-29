@@ -66,7 +66,7 @@ type CreateUserResponseBody struct {
 // @Failure 400
 // @Failure 500
 // @Router /users [post]
-func NewCreateUser(userCreator UserCreator) gin.HandlerFunc {
+func NewCreateUser(userCreator UserCreator, changelogWriter ChangelogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request CreateUserRequestBody
 		err := c.ShouldBindJSON(&request)
@@ -89,6 +89,17 @@ func NewCreateUser(userCreator UserCreator) gin.HandlerFunc {
 			slog.Error("creating user", "err", err)
 			c.Status(http.StatusInternalServerError)
 			return
+		}
+
+		entry := entities.ChangelogEntry{
+			UserID:     user.ID,
+			CreatedAt:  user.CreatedAt,
+			ChangeType: "POST",
+		}
+		err = changelogWriter.PublishChangelogEntry(entry)
+		if err != nil {
+			// deliberately not returning error here as request didn't fail
+			slog.Error("publishing changelog event", "err", err, "changelogEntry", entry)
 		}
 
 		c.JSON(http.StatusOK, CreateUserResponseBody{

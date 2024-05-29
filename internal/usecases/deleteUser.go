@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 //go:generate mockgen --build_flags=--mod=mod -destination=../../mocks/userDeleter.go  . "UserDeleter"
@@ -26,7 +27,7 @@ type UserDeleter interface {
 // @Failure 400
 // @Failure 500
 // @Router /users/{userId} [delete]
-func NewDeleteUser(userDeleter UserDeleter) gin.HandlerFunc {
+func NewDeleteUser(userDeleter UserDeleter, changelogWriter ChangelogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userId")
 
@@ -48,6 +49,17 @@ func NewDeleteUser(userDeleter UserDeleter) gin.HandlerFunc {
 			slog.Error("deleting user", "err", err)
 			c.Status(http.StatusInternalServerError)
 			return
+		}
+
+		entry := entities.ChangelogEntry{
+			UserID:     userIDUUID,
+			CreatedAt:  time.Now(),
+			ChangeType: "DELETE",
+		}
+		err = changelogWriter.PublishChangelogEntry(entry)
+		if err != nil {
+			// deliberately not returning error here as request didn't fail
+			slog.Error("publishing changelog event", "err", err, "changelogEntry", entry)
 		}
 
 		c.Status(http.StatusOK)

@@ -39,7 +39,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := drivers.NewRouter(postgresAdapter, postgresAdapter, postgresAdapter)
+	kafkaAdapter, err := adapters.NewKafkaAdapter(conf.KafkaHost)
+	if err != nil {
+		slog.Error("creating kafka adapter", "err", err)
+		os.Exit(1)
+	}
+
+	router := drivers.NewRouter(kafkaAdapter, postgresAdapter, postgresAdapter, postgresAdapter)
 
 	err = router.Run()
 	if err != nil {

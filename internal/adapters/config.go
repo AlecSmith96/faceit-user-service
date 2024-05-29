@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	PostgresConnectionURI string `yaml:"postgres-connection-uri" env:"POSTGRES_CONNECTION_URI" env-required:"true"`
+	KafkaHost             string `yaml:"kafka-host" env:"KAFKA_HOST" env-required:"true"`
 }
 
 func NewConfig() (*Config, error) {

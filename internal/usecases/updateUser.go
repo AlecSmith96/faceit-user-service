@@ -68,7 +68,7 @@ type UpdateUserResponseBody struct {
 // @Failure 400
 // @Failure 500
 // @Router /users/{userId} [put]
-func NewUpdateUser(userUpdater UserUpdater) gin.HandlerFunc {
+func NewUpdateUser(userUpdater UserUpdater, changelogWriter ChangelogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userId")
 
@@ -107,6 +107,17 @@ func NewUpdateUser(userUpdater UserUpdater) gin.HandlerFunc {
 			slog.Error("updating user", "err", err)
 			c.Status(http.StatusInternalServerError)
 			return
+		}
+
+		entry := entities.ChangelogEntry{
+			UserID:     user.ID,
+			CreatedAt:  user.CreatedAt,
+			ChangeType: "PUT",
+		}
+		err = changelogWriter.PublishChangelogEntry(entry)
+		if err != nil {
+			// deliberately not returning error here as request didn't fail
+			slog.Error("publishing changelog event", "err", err, "changelogEntry", entry)
 		}
 
 		c.JSON(http.StatusOK, UpdateUserResponseBody{
