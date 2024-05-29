@@ -20,3 +20,8 @@
 # Go workspace file
 go.work
 go.work.sum
+
+dev-config.yaml
+.idea/
+
+faceit-user-service.iml
