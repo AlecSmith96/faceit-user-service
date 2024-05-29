@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	_ "github.com/AlecSmith96/faceit-user-service/docs"
 	"github.com/AlecSmith96/faceit-user-service/internal/adapters"
 	"github.com/AlecSmith96/faceit-user-service/internal/drivers"
 	_ "github.com/lib/pq"
@@ -12,6 +13,10 @@ import (
 const (
 	gooseDir = "./db/goose"
 )
+
+// @title Faceit user service
+// @version 1.0
+// @description This is a simple REST server providing CRUD operations on a User object
 
 func main() {
 	conf, err := adapters.NewConfig()

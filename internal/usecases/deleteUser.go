@@ -10,10 +10,22 @@ import (
 	"net/http"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination=../../mocks/userDeleter.go  . "UserDeleter"
 type UserDeleter interface {
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
 
+// NewDeleteUser deletes a user
+// @Summary Delete user
+// @Description Deletes a user from the system
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param userId path string true "User ID"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /users/{userId} [delete]
 func NewDeleteUser(userDeleter UserDeleter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userId")

@@ -1,0 +1,207 @@
+definitions:
+  usecases.CreateUserRequestBody:
+    description: Request body for creating a new user
+    properties:
+      country:
+        description: Country represents the user's country
+        type: string
+      email:
+        description: Email represents the user's email address
+        type: string
+      first_name:
+        description: FirstName represents the user's first name
+        type: string
+      last_name:
+        description: LastName represents the user's last name
+        type: string
+      nickname:
+        description: Nickname represents the user's nickname
+        type: string
+      password:
+        description: Password represents the user's password
+        type: string
+    required:
+    - country
+    - email
+    - first_name
+    - last_name
+    - nickname
+    - password
+    type: object
+  usecases.CreateUserResponseBody:
+    description: Response body for a created user
+    properties:
+      country:
+        description: Country represents the user's country
+        type: string
+      created_at:
+        description: CreatedAt represents the timestamp when the user was created
+        type: string
+      email:
+        description: Email represents the user's email address
+        type: string
+      first_name:
+        description: FirstName represents the user's first name
+        type: string
+      id:
+        description: ID represents the user's unique identifier
+        type: string
+      last_name:
+        description: LastName represents the user's last name
+        type: string
+      nickname:
+        description: Nickname represents the user's nickname
+        type: string
+      password:
+        description: Password represents the user's password
+        type: string
+      updated_at:
+        description: UpdatedAt represents the timestamp when the user was last updated
+        type: string
+    type: object
+  usecases.UpdateUserRequestBody:
+    description: Request body for updating a user
+    properties:
+      country:
+        description: Country represents the user's country
+        type: string
+      email:
+        description: Email represents the user's email address
+        type: string
+      first_name:
+        description: FirstName represents the user's first name
+        type: string
+      last_name:
+        description: LastName represents the user's last name
+        type: string
+      nickname:
+        description: Nickname represents the user's nickname
+        type: string
+      password:
+        description: Password represents the user's password
+        type: string
+    required:
+    - country
+    - email
+    - first_name
+    - last_name
+    - nickname
+    - password
+    type: object
+  usecases.UpdateUserResponseBody:
+    description: Response body for an updated user
+    properties:
+      country:
+        description: Country represents the user's country
+        type: string
+      created_at:
+        description: CreatedAt represents the timestamp when the user was created
+        type: string
+      email:
+        description: Email represents the user's email address
+        type: string
+      first_name:
+        description: FirstName represents the user's first name
+        type: string
+      id:
+        description: ID represents the user's unique identifier
+        type: string
+      last_name:
+        description: LastName represents the user's last name
+        type: string
+      nickname:
+        description: Nickname represents the user's nickname
+        type: string
+      password:
+        description: Password represents the user's password
+        type: string
+      updated_at:
+        description: UpdatedAt represents the timestamp when the user was last updated
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a simple REST server providing CRUD operations on a User object
+  title: Faceit user service
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the provided details
+      parameters:
+      - description: Create User Request Body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.CreateUserRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecases.CreateUserResponseBody'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Create a new user
+      tags:
+      - users
+  /users/{userId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user from the system
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Delete user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates user information for the provided userId
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Create User Request Body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.UpdateUserRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecases.UpdateUserResponseBody'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Update User
+      tags:
+      - users
+swagger: "2.0"

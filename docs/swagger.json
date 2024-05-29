@@ -1,0 +1,293 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a simple REST server providing CRUD operations on a User object",
+        "title": "Faceit user service",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/users": {
+            "post": {
+                "description": "Create a new user with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "Create User Request Body",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecases.CreateUserRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usecases.CreateUserResponseBody"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/users/{userId}": {
+            "put": {
+                "description": "Updates user information for the provided userId",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create User Request Body",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecases.UpdateUserRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usecases.UpdateUserResponseBody"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a user from the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "usecases.CreateUserRequestBody": {
+            "description": "Request body for creating a new user",
+            "type": "object",
+            "required": [
+                "country",
+                "email",
+                "first_name",
+                "last_name",
+                "nickname",
+                "password"
+            ],
+            "properties": {
+                "country": {
+                    "description": "Country represents the user's country",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email represents the user's email address",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName represents the user's first name",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName represents the user's last name",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Nickname represents the user's nickname",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password represents the user's password",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.CreateUserResponseBody": {
+            "description": "Response body for a created user",
+            "type": "object",
+            "properties": {
+                "country": {
+                    "description": "Country represents the user's country",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt represents the timestamp when the user was created",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email represents the user's email address",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName represents the user's first name",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID represents the user's unique identifier",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName represents the user's last name",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Nickname represents the user's nickname",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password represents the user's password",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt represents the timestamp when the user was last updated",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.UpdateUserRequestBody": {
+            "description": "Request body for updating a user",
+            "type": "object",
+            "required": [
+                "country",
+                "email",
+                "first_name",
+                "last_name",
+                "nickname",
+                "password"
+            ],
+            "properties": {
+                "country": {
+                    "description": "Country represents the user's country",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email represents the user's email address",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName represents the user's first name",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName represents the user's last name",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Nickname represents the user's nickname",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password represents the user's password",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.UpdateUserResponseBody": {
+            "description": "Response body for an updated user",
+            "type": "object",
+            "properties": {
+                "country": {
+                    "description": "Country represents the user's country",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt represents the timestamp when the user was created",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email represents the user's email address",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName represents the user's first name",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID represents the user's unique identifier",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName represents the user's last name",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Nickname represents the user's nickname",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password represents the user's password",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt represents the timestamp when the user was last updated",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
