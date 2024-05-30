@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination=../../mocks/readinessChecker.go  . "ReadinessChecker"
 type ReadinessChecker interface {
 	CheckConnection() error
 }

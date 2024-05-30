@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile
+    image: faceit-user-service:latest
     ports:
       - "8080:8080"
     environment:

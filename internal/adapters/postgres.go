@@ -62,7 +62,9 @@ func decodePageToken(token string) (uuid.UUID, time.Time, error) {
 }
 
 func (p *PostgresAdapter) CreateUser(ctx context.Context, firstName, lastName, nickname, password, email, country string) (*entities.User, error) {
-	result, err := p.db.Query(
+	var user entities.User
+	err := p.db.QueryRowContext(
+		ctx,
 		"INSERT INTO platform_user (first_name, last_name, nickname, password, email, country) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
 		firstName,
 		lastName,
@@ -70,6 +72,16 @@ func (p *PostgresAdapter) CreateUser(ctx context.Context, firstName, lastName, n
 		password,
 		email,
 		country,
+	).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Nickname,
+		&user.Password,
+		&user.Email,
+		&user.Country,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"platform_user_email_key\"") {
@@ -79,25 +91,6 @@ func (p *PostgresAdapter) CreateUser(ctx context.Context, firstName, lastName, n
 		}
 		slog.Debug("error inserting user record", "err", err)
 		return nil, err
-	}
-
-	var user entities.User
-	if result.Next() {
-		err = result.Scan(
-			&user.ID,
-			&user.FirstName,
-			&user.LastName,
-			&user.Nickname,
-			&user.Password,
-			&user.Email,
-			&user.Country,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		)
-		if err != nil {
-			slog.Debug("marshalling user to struct", "err", err)
-			return nil, err
-		}
 	}
 
 	return &user, nil

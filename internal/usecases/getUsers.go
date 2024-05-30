@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination=../../mocks/userGetter.go  . "UserGetter"
 type UserGetter interface {
 	GetPaginatedUsers(ctx context.Context, firstName, lastName, nickname, email, country string, pageInfo entities.PageInfo) ([]entities.User, string, error)
 }
