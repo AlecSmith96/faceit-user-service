@@ -40,11 +40,24 @@ func (adapter *KafkaAdapter) PublishChangelogEntry(entry entities.ChangelogEntry
 		Key:            []byte(entry.UserID.String()),
 	}
 
+	deliveryChan := make(chan kafka.Event)
 	err = adapter.producer.Produce(msg, nil)
 	if err != nil {
 		slog.Error("failed to produce message to DLQ", err)
 		return err
 	}
+
+	e := <-deliveryChan
+	m := e.(*kafka.Message)
+
+	if m.TopicPartition.Error != nil {
+		fmt.Printf("Failed to deliver message: %v\n", m.TopicPartition.Error)
+	} else {
+		fmt.Printf("Produced message to topic %s [%d] at offset %v\n",
+			*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
+	}
+
+	close(deliveryChan)
 
 	adapter.producer.Flush(1 * 1000)
 	return nil

@@ -8,10 +8,16 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+      - GOOS=linux
       - POSTGRES_CONNECTION_URI=host=postgres port=5432 user=postgres password=postgres dbname=users sslmode=disable
       - KAFKA_HOST=kafka
     depends_on:
       - postgres
+      - kafka
+    networks:
+      - kafka-net
 
   postgres:
     image: postgres:13
@@ -21,6 +27,9 @@ services:
       POSTGRES_DB: users
     ports:
       - "5432:5432"
+    networks:
+      - kafka-net
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
@@ -29,6 +38,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - kafka-net
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -38,29 +49,32 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:9092,INTERNAL://kafka:9093
-      KAFKA_LISTENERS: EXTERNAL://0.0.0.0:9092,INTERNAL://0.0.0.0:9093
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
     ports:
       - "9092:9092"
-      - "9093:9093"
+    networks:
+      - kafka-net
 
   kafka_ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka_ui
     environment:
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
     ports:
       - "9090:8080"
     depends_on:
       - kafka
+    networks:
+      - kafka-net
 
 networks:
-  default:
-    name: kafka-net
+  kafka-net:
     driver: bridge

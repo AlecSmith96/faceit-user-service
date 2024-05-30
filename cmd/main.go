@@ -45,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := drivers.NewRouter(kafkaAdapter, postgresAdapter, postgresAdapter, postgresAdapter)
+	router := drivers.NewRouter(kafkaAdapter, postgresAdapter, postgresAdapter, postgresAdapter, postgresAdapter)
 
 	err = router.Run()
 	if err != nil {

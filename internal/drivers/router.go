@@ -10,6 +10,7 @@ import (
 
 func NewRouter(
 	changelogWriter usecases.ChangelogWriter,
+	userGetter usecases.UserGetter,
 	userCreator usecases.UserCreator,
 	userDeleter usecases.UserDeleter,
 	userUpdater usecases.UserUpdater,
@@ -19,6 +20,7 @@ func NewRouter(
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	r.GET("/users", usecases.NewGetUsers(userGetter, changelogWriter))
 	r.POST("/user", usecases.NewCreateUser(userCreator, changelogWriter))
 	r.DELETE("/user/:userId", usecases.NewDeleteUser(userDeleter, changelogWriter))
 	r.PUT("/user/:userId", usecases.NewUpdateUser(userUpdater, changelogWriter))

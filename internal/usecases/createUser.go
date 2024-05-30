@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	_ "github.com/AlecSmith96/faceit-user-service/docs"
 	"github.com/AlecSmith96/faceit-user-service/internal/entities"
 	"github.com/gin-gonic/gin"
@@ -65,7 +66,7 @@ type CreateUserResponseBody struct {
 // @Success 200 {object} CreateUserResponseBody
 // @Failure 400
 // @Failure 500
-// @Router /users [post]
+// @Router /user [post]
 func NewCreateUser(userCreator UserCreator, changelogWriter ChangelogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request CreateUserRequestBody
@@ -86,6 +87,12 @@ func NewCreateUser(userCreator UserCreator, changelogWriter ChangelogWriter) gin
 			request.Country,
 		)
 		if err != nil {
+			if errors.Is(err, entities.ErrEmailAlreadyUsed) {
+				slog.Warn("email already registered to a uer", "err", err)
+				c.Status(http.StatusBadRequest)
+				return
+			}
+
 			slog.Error("creating user", "err", err)
 			c.Status(http.StatusInternalServerError)
 			return

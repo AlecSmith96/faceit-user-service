@@ -59,6 +59,54 @@ definitions:
         description: UpdatedAt represents the timestamp when the user was last updated
         type: string
     type: object
+  usecases.GetUsersRequestBody:
+    description: Optional search criteria for getting users
+    properties:
+      country:
+        description: Country represents the user's country
+        type: string
+      email:
+        description: Email represents the user's email address
+        type: string
+      first_name:
+        description: FirstName represents the user's first name
+        type: string
+      last_name:
+        description: LastName represents the user's last name
+        type: string
+      nickname:
+        description: Nickname represents the user's nickname
+        type: string
+      page_info:
+        allOf:
+        - $ref: '#/definitions/usecases.PageInfo'
+        description: PageInfo represents the pagination information for the request
+    type: object
+  usecases.GetUsersResponseBody:
+    description: List of users matching search criteria and pagination info
+    properties:
+      page_info:
+        allOf:
+        - $ref: '#/definitions/usecases.PageInfo'
+        description: PageInfo represents the pagination information for the request
+      users:
+        description: Users represents the users matching the search criteria
+        items:
+          $ref: '#/definitions/usecases.UserResponse'
+        type: array
+    type: object
+  usecases.PageInfo:
+    description: Provides page size and the token used to get the next page of users
+    properties:
+      next_page_token:
+        description: NextPageToken represents the token used to get the next page
+          of results
+        type: string
+      page_size:
+        description: PageSize represents the number of results per page, default is
+          10
+        type: integer
+    type: object
   usecases.UpdateUserRequestBody:
     description: Request body for updating a user
     properties:
@@ -119,13 +167,44 @@ definitions:
         description: UpdatedAt represents the timestamp when the user was last updated
         type: string
     type: object
+  usecases.UserResponse:
+    description: Information of an individual user in the list of users
+    properties:
+      country:
+        description: Country represents the user's country
+        type: string
+      created_at:
+        description: CreatedAt represents the timestamp when the user was created
+        type: string
+      email:
+        description: Email represents the user's email address
+        type: string
+      first_name:
+        description: FirstName represents the user's first name
+        type: string
+      id:
+        description: ID represents the user's unique identifier
+        type: string
+      last_name:
+        description: LastName represents the user's last name
+        type: string
+      nickname:
+        description: Nickname represents the user's nickname
+        type: string
+      password:
+        description: Password represents the user's password
+        type: string
+      updated_at:
+        description: UpdatedAt represents the timestamp when the user was last updated
+        type: string
+    type: object
 info:
   contact: {}
   description: This is a simple REST server providing CRUD operations on a User object
   title: faceit-user-service
   version: "1.0"
 paths:
-  /users:
+  /user:
     post:
       consumes:
       - application/json
@@ -149,6 +228,32 @@ paths:
         "500":
           description: Internal Server Error
       summary: Create a new user
+      tags:
+      - users
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Gets  list of users based on optional search criteria
+      parameters:
+      - description: Get Users Request Body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.GetUsersRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecases.GetUsersResponseBody'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get a list of users
       tags:
       - users
   /users/{userId}:

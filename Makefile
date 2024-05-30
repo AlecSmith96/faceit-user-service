@@ -11,6 +11,9 @@ stop-postgres:
 swagger:
 	swag init --generalInfo ../../cmd/main.go --dir ./internal/usecases
 
+build-service:
+	podman-compose build --no-cache
+
 run-service:
 	-make stop-postgres
 	-make stop-service

@@ -7,7 +7,7 @@
         "version": "1.0"
     },
     "paths": {
-        "/users": {
+        "/user": {
             "post": {
                 "description": "Create a new user with the provided details",
                 "consumes": [
@@ -36,6 +36,46 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/usecases.CreateUserResponseBody"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Gets  list of users based on optional search criteria",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a list of users",
+                "parameters": [
+                    {
+                        "description": "Get Users Request Body",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecases.GetUsersRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usecases.GetUsersResponseBody"
                         }
                     },
                     "400": {
@@ -209,6 +249,75 @@
                 }
             }
         },
+        "usecases.GetUsersRequestBody": {
+            "description": "Optional search criteria for getting users",
+            "type": "object",
+            "properties": {
+                "country": {
+                    "description": "Country represents the user's country",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email represents the user's email address",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName represents the user's first name",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName represents the user's last name",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Nickname represents the user's nickname",
+                    "type": "string"
+                },
+                "page_info": {
+                    "description": "PageInfo represents the pagination information for the request",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/usecases.PageInfo"
+                        }
+                    ]
+                }
+            }
+        },
+        "usecases.GetUsersResponseBody": {
+            "description": "List of users matching search criteria and pagination info",
+            "type": "object",
+            "properties": {
+                "page_info": {
+                    "description": "PageInfo represents the pagination information for the request",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/usecases.PageInfo"
+                        }
+                    ]
+                },
+                "users": {
+                    "description": "Users represents the users matching the search criteria",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/usecases.UserResponse"
+                    }
+                }
+            }
+        },
+        "usecases.PageInfo": {
+            "description": "Provides page size and the token used to get the next page of users",
+            "type": "object",
+            "properties": {
+                "next_page_token": {
+                    "description": "NextPageToken represents the token used to get the next page of results",
+                    "type": "string"
+                },
+                "page_size": {
+                    "description": "PageSize represents the number of results per page, default is 10",
+                    "type": "integer"
+                }
+            }
+        },
         "usecases.UpdateUserRequestBody": {
             "description": "Request body for updating a user",
             "type": "object",
@@ -249,6 +358,48 @@
         },
         "usecases.UpdateUserResponseBody": {
             "description": "Response body for an updated user",
+            "type": "object",
+            "properties": {
+                "country": {
+                    "description": "Country represents the user's country",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt represents the timestamp when the user was created",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email represents the user's email address",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName represents the user's first name",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID represents the user's unique identifier",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName represents the user's last name",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Nickname represents the user's nickname",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password represents the user's password",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt represents the timestamp when the user was last updated",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.UserResponse": {
+            "description": "Information of an individual user in the list of users",
             "type": "object",
             "properties": {
                 "country": {
