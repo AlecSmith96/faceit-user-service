@@ -22,6 +22,7 @@ var _ usecases.UserCreator = &PostgresAdapter{}
 var _ usecases.UserDeleter = &PostgresAdapter{}
 var _ usecases.UserUpdater = &PostgresAdapter{}
 var _ usecases.UserGetter = &PostgresAdapter{}
+var _ usecases.ReadinessChecker = &PostgresAdapter{}
 
 func NewPostgresAdapter(db *sql.DB) *PostgresAdapter {
 	return &PostgresAdapter{db: db}
@@ -260,4 +261,14 @@ func (p *PostgresAdapter) GetPaginatedUsers(
 	nextPageToken := encodePageToken(lastUser.ID, lastUser.CreatedAt)
 
 	return users, nextPageToken, nil
+}
+
+func (p *PostgresAdapter) CheckConnection() error {
+	err := p.db.Ping()
+	if err != nil {
+		slog.Debug("database connection lost")
+		return err
+	}
+
+	return nil
 }
