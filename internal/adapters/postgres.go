@@ -246,7 +246,7 @@ func (p *PostgresAdapter) GetPaginatedUsers(
 		users = append(users, user)
 	}
 
-	if len(users) == 0 {
+	if len(users) == 0 || len(users) < pageInfo.PageSize {
 		return users, "", nil
 	}
 
