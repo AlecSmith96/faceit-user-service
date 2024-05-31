@@ -1,21 +1,19 @@
 FROM golang:1.21-alpine as build
 
+RUN apk add --no-progress --no-cache gcc musl-dev
 WORKDIR /app
+
+COPY . .
 
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
-
 RUN go mod vendor
 
 # Build binary
-RUN  GO111MODULE="on" CGO_ENABLED=0 GOOS=linux go build -mod=vendor -o main cmd/main.go
+RUN  GO111MODULE="on" GOOS=linux GOARCH=amd64 go build -mod=vendor -tags musl -ldflags '-extldflags "-static"' -o main cmd/main.go
 
-#FROM scratch
-
-# TODO: debugging, revert before finishing
-FROM alpine:latest
+FROM scratch
 
 WORKDIR /app
 

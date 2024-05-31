@@ -1,64 +1,63 @@
 package adapters
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/AlecSmith96/faceit-user-service/internal/entities"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/segmentio/kafka-go"
+	"log"
 	"log/slog"
+	"time"
+)
+
+const (
+	topicName = "users-changelog"
 )
 
 type KafkaAdapter struct {
-	producer *kafka.Producer
+	conn *kafka.Conn
 }
 
 func NewKafkaAdapter(kafkaHost string) (*KafkaAdapter, error) {
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": fmt.Sprintf("%s:9092", kafkaHost),
-	})
+	conn, err := kafka.DialLeader(context.Background(), "tcp", fmt.Sprintf("%s:9092", kafkaHost), topicName, 0)
 	if err != nil {
-		return nil, err
+		log.Fatal("failed to dial leader:", err)
 	}
 
 	return &KafkaAdapter{
-		producer: producer,
+		conn: conn,
 	}, nil
 }
 
 func (adapter *KafkaAdapter) PublishChangelogEntry(entry entities.ChangelogEntry) error {
-	topicName := "users-changelog"
-
-	topicMessage, err := json.Marshal(entry)
+	err := adapter.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 	if err != nil {
-		slog.Debug("unable to send changelog event", "err", err)
+		slog.Debug("unable to set write deadline", "err", err)
+	}
+
+	entryJSON, err := json.Marshal(entry)
+	if err != nil {
+		slog.Debug("unable to convert entry to json", "err", err)
 		return err
 	}
 
-	msg := &kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topicName, Partition: kafka.PartitionAny},
-		Value:          topicMessage,
-		Key:            []byte(entry.UserID.String()),
-	}
-
-	deliveryChan := make(chan kafka.Event)
-	err = adapter.producer.Produce(msg, nil)
+	_, err = adapter.conn.WriteMessages(
+		kafka.Message{Value: entryJSON},
+	)
 	if err != nil {
-		slog.Error("failed to produce message to DLQ", err)
+		slog.Debug("failed to write message", "err", err)
 		return err
 	}
 
-	e := <-deliveryChan
-	m := e.(*kafka.Message)
+	return nil
+}
 
-	if m.TopicPartition.Error != nil {
-		fmt.Printf("Failed to deliver message: %v\n", m.TopicPartition.Error)
-	} else {
-		fmt.Printf("Produced message to topic %s [%d] at offset %v\n",
-			*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
+func (adapter *KafkaAdapter) CloseConn() error {
+	if err := adapter.conn.Close(); err != nil {
+		slog.Error("failed to close writer", "err", err)
+		return err
 	}
 
-	close(deliveryChan)
-
-	adapter.producer.Flush(1 * 1000)
 	return nil
 }

@@ -44,6 +44,7 @@ func main() {
 		slog.Error("creating kafka adapter", "err", err)
 		os.Exit(1)
 	}
+	defer kafkaAdapter.CloseConn()
 
 	router := drivers.NewRouter(kafkaAdapter, postgresAdapter, postgresAdapter, postgresAdapter, postgresAdapter, postgresAdapter)
 
