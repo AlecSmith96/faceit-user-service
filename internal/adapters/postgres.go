@@ -119,7 +119,7 @@ func (p *PostgresAdapter) DeleteUser(ctx context.Context, userID uuid.UUID) erro
 
 func (p *PostgresAdapter) UpdateUser(ctx context.Context, userID uuid.UUID, firstName, lastName, nickname, password, email, country string) (*entities.User, error) {
 	result, err := p.db.Query(
-		"UPDATE platform_user  SET first_name = $2, last_name = $3, nickname = $4, password = $5, email = $6, country = $7, updated_at = $8 WHERE id = $1 RETURNING *",
+		"UPDATE platform_user SET first_name = $2, last_name = $3, nickname = $4, password = $5, email = $6, country = $7, updated_at = $8 WHERE id = $1 RETURNING *",
 		userID,
 		firstName,
 		lastName,

@@ -23,3 +23,8 @@ stop-service:
 	podman-compose down
 	bash -c "podman stop faceit-user-service_faceit-user-service_1 || true"
 	bash -c "podman rm faceit-user-service_faceit-user-service_1 || true"
+
+# run all service tests
+test:
+	go test ./internal/... -coverprofile=coverage.out
+

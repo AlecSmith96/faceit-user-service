@@ -28,9 +28,7 @@ func TestNewPostgresAdapter(t *testing.T) {
 func TestPostgresAdapter_CreateUser(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -67,9 +65,7 @@ func TestPostgresAdapter_CreateUser(t *testing.T) {
 func TestPostgresAdapter_CreateUser_EmailUniqueConstraint(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -93,9 +89,7 @@ func TestPostgresAdapter_CreateUser_EmailUniqueConstraint(t *testing.T) {
 func TestPostgresAdapter_CreateUser_ExecError(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -116,12 +110,180 @@ func TestPostgresAdapter_CreateUser_ExecError(t *testing.T) {
 	g.Expect(user).To(BeNil())
 }
 
+func TestPostgresAdapter_DeleteUser(t *testing.T) {
+	g := NewWithT(t)
+	db, mock, err := sqlmock.New()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	adapter := adapters.NewPostgresAdapter(db)
+
+	userID := uuid.New()
+	mock.ExpectExec(`DELETE FROM platform_user WHERE id = \$1;`).
+		WithArgs(userID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = adapter.DeleteUser(
+		context.Background(),
+		userID,
+	)
+	g.Expect(err).ToNot(HaveOccurred())
+}
+
+func TestPostgresAdapter_DeleteUser_ExecErr(t *testing.T) {
+	g := NewWithT(t)
+	db, mock, err := sqlmock.New()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	adapter := adapters.NewPostgresAdapter(db)
+
+	userID := uuid.New()
+	mock.ExpectExec(`DELETE FROM platform_user WHERE id = \$1;`).
+		WithArgs(userID).
+		WillReturnError(errors.New("an error occurred"))
+
+	err = adapter.DeleteUser(
+		context.Background(),
+		userID,
+	)
+	g.Expect(err).To(MatchError("an error occurred"))
+}
+
+func TestPostgresAdapter_DeleteUser_NoRowsAffected(t *testing.T) {
+	g := NewWithT(t)
+	db, mock, err := sqlmock.New()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	adapter := adapters.NewPostgresAdapter(db)
+
+	userID := uuid.New()
+	mock.ExpectExec(`DELETE FROM platform_user WHERE id = \$1;`).
+		WithArgs(userID).
+		WillReturnResult(sqlmock.NewResult(1, 0))
+
+	err = adapter.DeleteUser(
+		context.Background(),
+		userID,
+	)
+	g.Expect(err).To(MatchError(entities.ErrUserNotFound))
+}
+
+func TestPostgresAdapter_UpdateUser(t *testing.T) {
+	g := NewWithT(t)
+	db, mock, err := sqlmock.New()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	adapter := adapters.NewPostgresAdapter(db)
+
+	userEntity := entities.User{
+		ID:        uuid.New(),
+		FirstName: "alec",
+		LastName:  "smith",
+		Nickname:  "alecsmith",
+		Password:  "somepassword",
+		Email:     "alec@email.com",
+		Country:   "UK",
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	mock.ExpectQuery(`UPDATE platform_user SET first_name = \$2, last_name = \$3, nickname = \$4, password = \$5, email = \$6, country = \$7, updated_at = \$8 WHERE id = \$1 RETURNING \*`).
+		WithArgs(userEntity.ID, "alec", "smith", "alecsmith", "somepassword", "alec@email.com", "UK", sqlmock.AnyArg()).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "first_name", "last_name", "nickname", "password", "email", "country", "created_at", "updated_at"}).
+				AddRow(userEntity.ID, userEntity.FirstName, userEntity.LastName, userEntity.Nickname, userEntity.Password, userEntity.Email, userEntity.Country, userEntity.CreatedAt, userEntity.UpdatedAt))
+
+	user, err := adapter.UpdateUser(
+		context.Background(),
+		userEntity.ID,
+		userEntity.FirstName,
+		userEntity.LastName,
+		userEntity.Nickname,
+		userEntity.Password,
+		userEntity.Email,
+		userEntity.Country,
+	)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(*user).To(Equal(userEntity))
+}
+
+func TestPostgresAdapter_UpdateUser_QueryErr(t *testing.T) {
+	g := NewWithT(t)
+	db, mock, err := sqlmock.New()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	adapter := adapters.NewPostgresAdapter(db)
+
+	userEntity := entities.User{
+		ID:        uuid.New(),
+		FirstName: "alec",
+		LastName:  "smith",
+		Nickname:  "alecsmith",
+		Password:  "somepassword",
+		Email:     "alec@email.com",
+		Country:   "UK",
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	mock.ExpectQuery(`UPDATE platform_user SET first_name = \$2, last_name = \$3, nickname = \$4, password = \$5, email = \$6, country = \$7, updated_at = \$8 WHERE id = \$1 RETURNING \*`).
+		WithArgs(userEntity.ID, "alec", "smith", "alecsmith", "somepassword", "alec@email.com", "UK", sqlmock.AnyArg()).
+		WillReturnError(errors.New("an error occurred"))
+
+	user, err := adapter.UpdateUser(
+		context.Background(),
+		userEntity.ID,
+		userEntity.FirstName,
+		userEntity.LastName,
+		userEntity.Nickname,
+		userEntity.Password,
+		userEntity.Email,
+		userEntity.Country,
+	)
+	g.Expect(err).To(MatchError("an error occurred"))
+	g.Expect(user).To(BeNil())
+}
+
+func TestPostgresAdapter_UpdateUser_NoUserReturned(t *testing.T) {
+	g := NewWithT(t)
+	db, mock, err := sqlmock.New()
+	g.Expect(err).ToNot(HaveOccurred())
+
+	adapter := adapters.NewPostgresAdapter(db)
+
+	userEntity := entities.User{
+		ID:        uuid.New(),
+		FirstName: "alec",
+		LastName:  "smith",
+		Nickname:  "alecsmith",
+		Password:  "somepassword",
+		Email:     "alec@email.com",
+		Country:   "UK",
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	mock.ExpectQuery(`UPDATE platform_user SET first_name = \$2, last_name = \$3, nickname = \$4, password = \$5, email = \$6, country = \$7, updated_at = \$8 WHERE id = \$1 RETURNING \*`).
+		WithArgs(userEntity.ID, "alec", "smith", "alecsmith", "somepassword", "alec@email.com", "UK", sqlmock.AnyArg()).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "first_name", "last_name", "nickname", "password", "email", "country", "created_at", "updated_at"}))
+
+	user, err := adapter.UpdateUser(
+		context.Background(),
+		userEntity.ID,
+		userEntity.FirstName,
+		userEntity.LastName,
+		userEntity.Nickname,
+		userEntity.Password,
+		userEntity.Email,
+		userEntity.Country,
+	)
+	g.Expect(err).To(MatchError(entities.ErrUserNotFound))
+	g.Expect(user).To(BeNil())
+}
+
 func TestNewPostgresAdapter_GetPaginatedUsers_firstName(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -169,9 +331,7 @@ func TestNewPostgresAdapter_GetPaginatedUsers_firstName(t *testing.T) {
 func TestNewPostgresAdapter_GetPaginatedUsers_firstNameWithLastName(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -219,9 +379,7 @@ func TestNewPostgresAdapter_GetPaginatedUsers_firstNameWithLastName(t *testing.T
 func TestNewPostgresAdapter_GetPaginatedUsers_allParams(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -257,9 +415,7 @@ func TestNewPostgresAdapter_GetPaginatedUsers_allParams(t *testing.T) {
 func TestNewPostgresAdapter_GetPaginatedUsers_WithNextPageToken(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -312,9 +468,7 @@ func TestNewPostgresAdapter_GetPaginatedUsers_WithNextPageToken(t *testing.T) {
 func TestNewPostgresAdapter_GetPaginatedUsers_InvalidNextPageToken(t *testing.T) {
 	g := NewWithT(t)
 	db, _, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
@@ -330,9 +484,7 @@ func TestNewPostgresAdapter_GetPaginatedUsers_InvalidNextPageToken(t *testing.T)
 func TestNewPostgresAdapter_GetPaginatedUsers_QueryReturnsErr(t *testing.T) {
 	g := NewWithT(t)
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	adapter := adapters.NewPostgresAdapter(db)
 
