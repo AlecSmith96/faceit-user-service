@@ -2,6 +2,7 @@ package usecases_test
 
 import (
 	"bytes"
+	"errors"
 	"github.com/AlecSmith96/faceit-user-service/internal/entities"
 	"github.com/AlecSmith96/faceit-user-service/internal/usecases"
 	"github.com/goccy/go-json"
@@ -70,9 +71,13 @@ var _ = Describe("Getting a list of users", func() {
 		requestBodyJSON, err := json.Marshal(requestBody)
 		Expect(err).ToNot(HaveOccurred())
 
+		pageSize := 10
+		if requestBody.PageInfo.PageSize != 0 {
+			pageSize = requestBody.PageInfo.PageSize
+		}
 		pageInfo := entities.PageInfo{
 			NextPageToken: requestBody.PageInfo.NextPageToken,
-			PageSize:      requestBody.PageInfo.PageSize,
+			PageSize:      pageSize,
 		}
 
 		mockUserGetter.EXPECT().GetPaginatedUsers(
@@ -98,5 +103,37 @@ var _ = Describe("Getting a list of users", func() {
 		Expect(resp.Users).To(HaveLen(2))
 		Expect(resp.PageInfo.PageSize).To(Equal(20))
 		Expect(resp.PageInfo.NextPageToken).To(Equal("some-page-token"))
+	})
+
+	When("the request has no set page size", func() {
+		BeforeEach(func() {
+			requestBody = &usecases.GetUsersRequestBody{
+				FirstName: "alec",
+				LastName:  "smith",
+				Nickname:  "alecsmith",
+				Email:     "alec@email.com",
+				Country:   "UK",
+			}
+		})
+
+		It("should return a page size of 10", func() {
+			Expect(w.Code).To(Equal(http.StatusOK))
+			var resp usecases.GetUsersResponseBody
+			err := json.NewDecoder(w.Body).Decode(&resp)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.PageInfo.PageSize).To(Equal(10))
+		})
+	})
+
+	When("GetPaginatedUsers returns an error", func() {
+		BeforeEach(func() {
+			getPaginatedUsersResponse = nil
+			getPaginatedUsersErr = errors.New("an error occurred")
+			getPaginatedUsersCallCount = 1
+		})
+
+		It("should return a 500 Internal Server Error", func() {
+			Expect(w.Code).To(Equal(http.StatusInternalServerError))
+		})
 	})
 })
