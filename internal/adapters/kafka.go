@@ -3,10 +3,8 @@ package adapters
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/AlecSmith96/faceit-user-service/internal/entities"
 	"github.com/segmentio/kafka-go"
-	"log"
 	"log/slog"
 	"time"
 )
@@ -16,13 +14,13 @@ const (
 )
 
 type KafkaAdapter struct {
-	conn *kafka.Conn
+	conn KafkaConnection
 }
 
-func NewKafkaAdapter(kafkaHost string) (*KafkaAdapter, error) {
-	conn, err := kafka.DialLeader(context.Background(), "tcp", fmt.Sprintf("%s:9092", kafkaHost), topicName, 0)
+func NewKafkaAdapter(kafkaHost string, dialer Dialer) (*KafkaAdapter, error) {
+	conn, err := dialer.DialLeader(context.Background(), "tcp", kafkaHost, topicName, 0)
 	if err != nil {
-		log.Fatal("failed to dial leader:", err)
+		return nil, err
 	}
 
 	return &KafkaAdapter{
@@ -34,6 +32,7 @@ func (adapter *KafkaAdapter) PublishChangelogEntry(entry entities.ChangelogEntry
 	err := adapter.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 	if err != nil {
 		slog.Debug("unable to set write deadline", "err", err)
+		return err
 	}
 
 	entryJSON, err := json.Marshal(entry)

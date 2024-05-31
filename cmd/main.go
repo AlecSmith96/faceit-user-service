@@ -39,7 +39,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	kafkaAdapter, err := adapters.NewKafkaAdapter(conf.KafkaHost)
+	kafkaDialer := &adapters.KafkaDialer{}
+	kafkaAdapter, err := adapters.NewKafkaAdapter(conf.KafkaHost, kafkaDialer)
 	if err != nil {
 		slog.Error("creating kafka adapter", "err", err)
 		os.Exit(1)
