@@ -13,10 +13,18 @@ This will run:
 ## Documentation
 The documentation for the service is generated using swagger. Once the service has been run the documentation can be viewed at `http://localhost:8080/swagger/index.html#/` 
 
+## Running the tests
+The tests can be run using the following make command `make test`.
+
 ## Viewing the changelog
-The messages published to kafka can be viewed using the kafka-ui at `http:localhost:9090`. They will be published to the `users-changelog` topic.
+The messages published to kafka can be viewed using the kafka-ui at `http://localhost:9090`. They will be published to the `users-changelog` topic.
 
 ## Choices and assumptions
+- I chose to implement the service using Clean Architecture as it is a design principle that aims to make code more readable and maintainable. It decouples the services business logic from its application code by separating code into layers, making it easier to tell what the service does rather than what it's built with. The four layers are:
+  - `drivers`: This layer is for specific framework or application code, the only code in this layer is the gin router.
+  - `usecases`: This layer holds the main business logic for each endpoint, separated into individual files for readability.
+  - `adapters`: This layer contains the interfaces needed for the application, in this case it contains the code to interact with postgres and kafka.
+  - `entities`: This layer has all of the internal structs for the service.
 - Since the brief mentioned dockerised applications were preferred, I made the choice to make sure all technologies I used had to be started in the docker-compose file. This ruled out distributed options like MongoAB Atlas.
 - As only one example of a user record was provided, I made the assumption that the fields for a user would be consistent for every user. This meant that using a relational database would be sufficient as I didn't need to store unstructured data. It would also be more extensible in the future if other tables relating to a user record needed to be added later on.
 - I also made the choice to create a REST API instead of using gRPC as I didn't know what kind of applications would be accessing it, such as other microservices or a UI, so providing a REST API was the most flexible solution and provides the most compatibility compared to gRPC where the proto needs to be shared with the users of the API.
@@ -28,4 +36,6 @@ The messages published to kafka can be viewed using the kafka-ui at `http:localh
 - For the `GetUsers` endpoint, I would improve the filtering options by:
   - Allowing for users to be searched by `createdAt` or `updatedAt` fields, with less than, greater than, or date range options.
   - Provide ordering options, allowing the users to set the field to sort by and whether they are displayed in ascending or descending order.
+  - Make sure that the final page of results for a query doesn't include a pageToken to an empty page.
 - In the Dockerfile, using a scratch base image in the final stage for increased security.
+- Implement tracing at the usecase and adapter layers to identify any potential performance optimisations.
