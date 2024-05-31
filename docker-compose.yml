@@ -8,6 +8,12 @@ services:
     image: faceit-user-service:latest
     ports:
       - "8080:8080"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/health/readiness" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     environment:
       - GO111MODULE=on
       - CGO_ENABLED=0

@@ -13,9 +13,12 @@ RUN go mod vendor
 # Build binary
 RUN  GO111MODULE="on" GOOS=linux GOARCH=amd64 go build -mod=vendor -tags musl -ldflags '-extldflags "-static"' -o main cmd/main.go
 
-FROM scratch
+FROM alpine:latest
 
 WORKDIR /app
+
+# Install bash and curl
+RUN apk add --no-cache bash curl
 
 COPY --from=build /app/main .
 
