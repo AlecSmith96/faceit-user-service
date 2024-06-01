@@ -88,7 +88,7 @@ func NewCreateUser(userCreator UserCreator, changelogWriter ChangelogWriter) gin
 		)
 		if err != nil {
 			if errors.Is(err, entities.ErrEmailAlreadyUsed) {
-				slog.Warn("email already registered to a uer", "err", err)
+				slog.Warn("email already registered to a user", "err", err)
 				c.Status(http.StatusBadRequest)
 				return
 			}

@@ -104,6 +104,12 @@ func NewUpdateUser(userUpdater UserUpdater, changelogWriter ChangelogWriter) gin
 				return
 			}
 
+			if errors.Is(err, entities.ErrEmailAlreadyUsed) {
+				slog.Warn("email already registered to a uer", "err", err)
+				c.Status(http.StatusBadRequest)
+				return
+			}
+
 			slog.Error("updating user", "err", err)
 			c.Status(http.StatusInternalServerError)
 			return

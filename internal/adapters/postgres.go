@@ -130,6 +130,11 @@ func (p *PostgresAdapter) UpdateUser(ctx context.Context, userID uuid.UUID, firs
 		time.Now(),
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"platform_user_email_key\"") {
+			slog.Debug("email already registered to a user", "err", err)
+			return nil, entities.ErrEmailAlreadyUsed
+
+		}
 		slog.Debug("error updating creator", "err", err)
 		return nil, err
 	}
