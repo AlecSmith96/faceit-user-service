@@ -26,7 +26,7 @@ type UserDeleter interface {
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /users/{userId} [delete]
+// @Router /user/{userId} [delete]
 func NewDeleteUser(userDeleter UserDeleter, changelogWriter ChangelogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userId")

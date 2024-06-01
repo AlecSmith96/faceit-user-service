@@ -67,7 +67,7 @@ type UpdateUserResponseBody struct {
 // @Success 200 {object} UpdateUserResponseBody
 // @Failure 400
 // @Failure 500
-// @Router /users/{userId} [put]
+// @Router /user/{userId} [put]
 func NewUpdateUser(userUpdater UserUpdater, changelogWriter ChangelogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userId")
