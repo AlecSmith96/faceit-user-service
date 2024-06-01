@@ -25,6 +25,7 @@ services:
       - kafka
     networks:
       - kafka-net
+    restart: "unless-stopped"
 
   postgres:
     image: postgres:13
