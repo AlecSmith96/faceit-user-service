@@ -3,7 +3,8 @@
 A simple REST server providing CRUD operations on a User object. It stores the user records in a postgres database and publishes updates to User records to a Kafka topic so they can be consumed by any interested services.
 
 ## Running the service
-The service can be run using its docker-compose file: `docker-compose up --build -d`
+The service can be run using its docker-compose file: `docker-compose up --build -d` 
+- Note: please use the `--build` command when running as otherwise there can be kafka issues. 
 
 This will run:
 - the service on `localhost:8080`
@@ -26,7 +27,8 @@ The messages published to kafka can be viewed using the kafka-ui at `http://loca
   - `adapters`: This layer contains the interfaces needed for the application, in this case it contains the code to interact with postgres and kafka.
   - `entities`: This layer has all of the internal structs for the service.
 - I also made the choice that the communication of user updates to interested services should be asynchronous. This is because there could be multiple services interested in receiving updates, so writing to a message queue would allow multiple services to consume the updates at the same time. Using a message queue also means that the endpoints wouldn't have to wait for the services to consume the update before returning the response. 
-- Since the brief mentioned dockerised applications were preferred, I made the choice to make sure all technologies I used had to be started in the docker-compose file. This ruled out distributed options like MongoAB Atlas.
+- Since the brief mentioned dockerised applications were preferred, I made the choice to make sure all technologies I used had to be started in the docker-compose file. 
+- i also made the assumption that passwords didn't need to be stored securely as it wasn't mentioned in the brief. This is something I would do to improve the service if I had more time.
 - As only one example of a user record was provided, I made the assumption that the fields for a user would be consistent for every user. This meant that using a relational database would be sufficient as I didn't need to store unstructured data. It would also be more extensible in the future if other tables relating to a user record needed to be added later on.
 - I also made the choice to create a REST API instead of using gRPC as I didn't know what kind of applications would be accessing it, such as other microservices or a UI, so providing a REST API was the most flexible solution and provides the most compatibility compared to gRPC where the proto needs to be shared with the users of the API.
 
